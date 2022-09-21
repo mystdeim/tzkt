@@ -347,6 +347,7 @@ namespace Tzkt.Sync.Protocols.Proto1
 
             Db.DelegationOps.Remove(delegation);
             Cache.AppState.ReleaseManagerCounter();
+            Cache.AppState.ReleaseOperationId();
         }
 
         public virtual async Task RevertInternal(Block block, DelegationOperation delegation)
@@ -418,6 +419,12 @@ namespace Tzkt.Sync.Protocols.Proto1
             #endregion
 
             Db.DelegationOps.Remove(delegation);
+            Cache.AppState.ReleaseOperationId();
+        }
+
+        protected virtual int GetConsumedGas(JsonElement result)
+        {
+            return result.OptionalInt32("consumed_gas") ?? 0;
         }
 
         protected virtual int GetConsumedGas(JsonElement result)
@@ -956,7 +963,7 @@ namespace Tzkt.Sync.Protocols.Proto1
             return result;
         }
 
-        async Task<DelegationOperation> GetPrevDelegationAsync(Account sender, int id)
+        async Task<DelegationOperation> GetPrevDelegationAsync(Account sender, long id)
         {
             var result = await Db.DelegationOps
                 .Where(x => x.Status == OperationStatus.Applied &&

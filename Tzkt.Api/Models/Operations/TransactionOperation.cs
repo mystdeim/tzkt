@@ -13,7 +13,7 @@ namespace Tzkt.Api.Models
         /// <summary>
         /// Unique ID of the operation, stored in the TzKT indexer database
         /// </summary>
-        public override int Id { get; set; }
+        public override long Id { get; set; }
 
         /// <summary>
         /// The height of the block from the genesis block, in which the operation was included
@@ -149,6 +149,11 @@ namespace Tzkt.Api.Models
         /// Number of token transfers produced by the operation, or `null` if there are no transfers
         /// </summary>
         public int? TokenTransfersCount { get; set; }
+
+        /// <summary>
+        /// Number of events produced by the operation, or `null` if there are no events
+        /// </summary>
+        public int? EventsCount { get; set; }
 
         #region injecting
         /// <summary>

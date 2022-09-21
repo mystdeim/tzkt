@@ -68,7 +68,7 @@ namespace Tzkt.Api.Repositories
             #region include diffs
             var diffs = await BigMapsRepository.GetTransactionDiffs(db,
                 rows.Where(x => x.BigMapUpdates != null)
-                    .Select(x => (int)x.Id)
+                    .Select(x => (long)x.Id)
                     .ToList(),
                 format);
             #endregion
@@ -108,11 +108,12 @@ namespace Tzkt.Api.Repositories
                     }
                 },
                 Storage = row.StorageId == null ? null : storages?[row.StorageId],
-                Diffs = diffs?.GetValueOrDefault((int)row.Id),
+                Diffs = diffs?.GetValueOrDefault((long)row.Id),
                 Status = OpStatuses.ToString(row.Status),
                 Errors = row.Errors != null ? OperationErrorSerializer.Deserialize(row.Errors) : null,
                 HasInternals = row.InternalOperations > 0,
                 TokenTransfersCount = row.TokenTransfers,
+                EventsCount = row.EventsCount,
                 Quote = Quotes.Get(quote, row.Level)
             });
         }
@@ -142,7 +143,7 @@ namespace Tzkt.Api.Repositories
             #region include diffs
             var diffs = await BigMapsRepository.GetTransactionDiffs(db,
                 rows.Where(x => x.BigMapUpdates != null)
-                    .Select(x => (int)x.Id)
+                    .Select(x => (long)x.Id)
                     .ToList(),
                 format);
             #endregion
@@ -182,11 +183,12 @@ namespace Tzkt.Api.Repositories
                     }
                 },
                 Storage = row.StorageId == null ? null : storages?[row.StorageId],
-                Diffs = diffs?.GetValueOrDefault((int)row.Id),
+                Diffs = diffs?.GetValueOrDefault((long)row.Id),
                 Status = OpStatuses.ToString(row.Status),
                 Errors = row.Errors != null ? OperationErrorSerializer.Deserialize(row.Errors) : null,
                 HasInternals = row.InternalOperations > 0,
                 TokenTransfersCount = row.TokenTransfers,
+                EventsCount = row.EventsCount,
                 Quote = Quotes.Get(quote, row.Level)
             });
         }
@@ -216,7 +218,7 @@ namespace Tzkt.Api.Repositories
             #region include diffs
             var diffs = await BigMapsRepository.GetTransactionDiffs(db,
                 rows.Where(x => x.BigMapUpdates != null)
-                    .Select(x => (int)x.Id)
+                    .Select(x => (long)x.Id)
                     .ToList(),
                 format);
             #endregion
@@ -256,11 +258,12 @@ namespace Tzkt.Api.Repositories
                     }
                 },
                 Storage = row.StorageId == null ? null : storages?[row.StorageId],
-                Diffs = diffs?.GetValueOrDefault((int)row.Id),
+                Diffs = diffs?.GetValueOrDefault((long)row.Id),
                 Status = OpStatuses.ToString(row.Status),
                 Errors = row.Errors != null ? OperationErrorSerializer.Deserialize(row.Errors) : null,
                 HasInternals = row.InternalOperations > 0,
                 TokenTransfersCount = row.TokenTransfers,
+                EventsCount = row.EventsCount,
                 Quote = Quotes.Get(quote, row.Level)
             });
         }
@@ -314,6 +317,7 @@ namespace Tzkt.Api.Repositories
                 Errors = row.Errors != null ? OperationErrorSerializer.Deserialize(row.Errors) : null,
                 HasInternals = row.InternalOperations > 0,
                 TokenTransfersCount = row.TokenTransfers,
+                EventsCount = row.EventsCount,
                 Quote = Quotes.Get(quote, block.Level)
             });
         }
@@ -324,7 +328,7 @@ namespace Tzkt.Api.Repositories
             AccountParameter sender,
             AccountParameter target,
             Int64Parameter amount,
-            Int32Parameter id,
+            Int64Parameter id,
             Int32Parameter level,
             DateTimeParameter timestamp,
             Int32Parameter codeHash,
@@ -396,7 +400,7 @@ namespace Tzkt.Api.Repositories
             var diffs = includeBigmaps
                 ? await BigMapsRepository.GetTransactionDiffs(db,
                     rows.Where(x => x.BigMapUpdates != null)
-                        .Select(x => (int)x.Id)
+                        .Select(x => (long)x.Id)
                         .ToList(),
                     format)
                 : null;
@@ -437,11 +441,12 @@ namespace Tzkt.Api.Repositories
                     }
                 },
                 Storage = row.StorageId == null ? null : storages?[row.StorageId],
-                Diffs = diffs?.GetValueOrDefault((int)row.Id),
+                Diffs = diffs?.GetValueOrDefault((long)row.Id),
                 Status = OpStatuses.ToString(row.Status),
                 Errors = row.Errors != null ? OperationErrorSerializer.Deserialize(row.Errors) : null,
                 HasInternals = row.InternalOperations > 0,
                 TokenTransfersCount = row.TokenTransfers,
+                EventsCount = row.EventsCount,
                 Quote = Quotes.Get(quote, row.Level)
             });
         }
@@ -452,7 +457,7 @@ namespace Tzkt.Api.Repositories
             AccountParameter sender,
             AccountParameter target,
             Int64Parameter amount,
-            Int32Parameter id,
+            Int64Parameter id,
             Int32Parameter level,
             DateTimeParameter timestamp,
             Int32Parameter codeHash,
@@ -515,6 +520,7 @@ namespace Tzkt.Api.Repositories
                     case "errors": columns.Add(@"o.""Errors"""); break;
                     case "hasInternals": columns.Add(@"o.""InternalOperations"""); break;
                     case "tokenTransfersCount": columns.Add(@"o.""TokenTransfers"""); break;
+                    case "eventsCount": columns.Add(@"o.""EventsCount"""); break;
                     case "block":
                         columns.Add(@"b.""Hash""");
                         joins.Add(@"INNER JOIN ""Blocks"" as b ON b.""Level"" = o.""Level""");
@@ -682,12 +688,12 @@ namespace Tzkt.Api.Repositories
                     case "diffs":
                         var diffs = await BigMapsRepository.GetTransactionDiffs(db,
                             rows.Where(x => x.BigMapUpdates != null)
-                                .Select(x => (int)x.Id)
+                                .Select(x => (long)x.Id)
                                 .ToList(),
                             format);
                         if (diffs != null)
                             foreach (var row in rows)
-                                result[j++][i] = diffs.GetValueOrDefault((int)row.Id);
+                                result[j++][i] = diffs.GetValueOrDefault((long)row.Id);
                         break;
                     case "status":
                         foreach (var row in rows)
@@ -704,6 +710,10 @@ namespace Tzkt.Api.Repositories
                     case "tokenTransfersCount":
                         foreach (var row in rows)
                             result[j++][i] = row.TokenTransfers;
+                        break;
+                    case "eventsCount":
+                        foreach (var row in rows)
+                            result[j++][i] = row.EventsCount;
                         break;
                     case "quote":
                         foreach (var row in rows)
@@ -726,7 +736,7 @@ namespace Tzkt.Api.Repositories
             AccountParameter sender,
             AccountParameter target,
             Int64Parameter amount,
-            Int32Parameter id,
+            Int64Parameter id,
             Int32Parameter level,
             DateTimeParameter timestamp,
             Int32Parameter codeHash,
@@ -787,6 +797,7 @@ namespace Tzkt.Api.Repositories
                 case "errors": columns.Add(@"o.""Errors"""); break;
                 case "hasInternals": columns.Add(@"o.""InternalOperations"""); break;
                 case "tokenTransfersCount": columns.Add(@"o.""TokenTransfers"""); break;
+                case "eventsCount": columns.Add(@"o.""EventsCount"""); break;
                 case "block":
                     columns.Add(@"b.""Hash""");
                     joins.Add(@"INNER JOIN ""Blocks"" as b ON b.""Level"" = o.""Level""");
@@ -951,12 +962,12 @@ namespace Tzkt.Api.Repositories
                 case "diffs":
                     var diffs = await BigMapsRepository.GetTransactionDiffs(db,
                         rows.Where(x => x.BigMapUpdates != null)
-                            .Select(x => (int)x.Id)
+                            .Select(x => (long)x.Id)
                             .ToList(),
                         format);
                     if (diffs != null)
                         foreach (var row in rows)
-                            result[j++] = diffs.GetValueOrDefault((int)row.Id);
+                            result[j++] = diffs.GetValueOrDefault((long)row.Id);
                     break;
                 case "status":
                     foreach (var row in rows)
@@ -973,6 +984,10 @@ namespace Tzkt.Api.Repositories
                 case "tokenTransfersCount":
                     foreach (var row in rows)
                         result[j++] = row.TokenTransfers;
+                    break;
+                case "eventsCount":
+                    foreach (var row in rows)
+                        result[j++] = row.EventsCount;
                     break;
                 case "quote":
                     foreach (var row in rows)

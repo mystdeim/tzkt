@@ -124,6 +124,32 @@ namespace Tzkt.Sync.Protocols.Proto1
 
             Db.RevealOps.Remove(reveal);
             Cache.AppState.ReleaseManagerCounter();
+            Cache.AppState.ReleaseOperationId();
+        }
+
+        protected virtual int GetConsumedGas(JsonElement result)
+        {
+            return result.OptionalInt32("consumed_gas") ?? 0;
+        }
+
+        protected virtual void ApplyResult(RevealOperation op, string pubKey)
+        {
+            if (op.Sender is User user)
+            {
+                user.PublicKey = pubKey;
+                if (user.Balance > 0) user.Revealed = true;
+            }
+        }
+
+        protected virtual void RevertResult(RevealOperation op)
+        {
+            if (op.Sender is User user)
+            {
+                if (user.RevealsCount == 1)
+                    user.PublicKey = null;
+
+                user.Revealed = false;
+            }
         }
 
         protected virtual int GetConsumedGas(JsonElement result)

@@ -220,6 +220,179 @@ namespace Tzkt.Sync.Protocols.Proto13
 
             Db.TxRollupRejectionOps.Remove(operation);
             Cache.AppState.ReleaseManagerCounter();
+            Cache.AppState.ReleaseOperationId();
+        }
+
+        async Task<int> RestoreCounter(User user, long opId)
+        {
+            var counter = 0;
+
+            if (user.DelegationsCount > 0)
+            {
+                var opCounter = await Db.DelegationOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.OriginationsCount > 0)
+            {
+                var opCounter = await Db.OriginationOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TransactionsCount > 0)
+            {
+                var opCounter = await Db.TransactionOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.RevealsCount > 0)
+            {
+                var opCounter = await Db.RevealOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.RegisterConstantsCount > 0)
+            {
+                var opCounter = await Db.RegisterConstantOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.SetDepositsLimitsCount > 0)
+            {
+                var opCounter = await Db.SetDepositsLimitOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TransferTicketCount > 0)
+            {
+                var opCounter = await Db.TransferTicketOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupCommitCount > 0)
+            {
+                var opCounter = await Db.TxRollupCommitOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupDispatchTicketsCount > 0)
+            {
+                var opCounter = await Db.TxRollupDispatchTicketsOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupFinalizeCommitmentCount > 0)
+            {
+                var opCounter = await Db.TxRollupFinalizeCommitmentOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupOriginationCount > 0)
+            {
+                var opCounter = await Db.TxRollupOriginationOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupRejectionCount > 0)
+            {
+                var opCounter = await Db.TxRollupRejectionOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupRemoveCommitmentCount > 0)
+            {
+                var opCounter = await Db.TxRollupRemoveCommitmentOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupReturnBondCount > 0)
+            {
+                var opCounter = await Db.TxRollupReturnBondOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            if (user.TxRollupSubmitBatchCount > 0)
+            {
+                var opCounter = await Db.TxRollupSubmitBatchOps
+                    .AsNoTracking()
+                    .Where(x => x.SenderId == user.Id && x.Id < opId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.Counter)
+                    .FirstAsync();
+                counter = Math.Max(counter, opCounter);
+            }
+
+            return counter;
         }
 
         async Task<int> RestoreCounter(User user, int opId)

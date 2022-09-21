@@ -80,7 +80,7 @@ namespace Tzkt.Sync.Protocols.Proto14
                 if (periodIndex != period.Index)
                     throw new ValidationException("invalid voting period index");
 
-                if (periodKind != period.Kind)
+                if (!Protocol.HasDictator && periodKind != period.Kind)
                     throw new ValidationException("unexpected voting period");
             }
             #endregion
@@ -100,7 +100,7 @@ namespace Tzkt.Sync.Protocols.Proto14
             {
                 if (balanceUpdates.Any(x => x.RequiredString("kind") == "minted" && x.RequiredString("category") == "baking rewards"))
                     throw new ValidationException("unexpected block reward");
-                
+
                 if (balanceUpdates.Any(x => x.RequiredString("kind") == "minted" && x.RequiredString("category") == "baking bonuses"))
                     throw new ValidationException("unexpected block bonus");
             }
@@ -108,10 +108,10 @@ namespace Tzkt.Sync.Protocols.Proto14
             {
                 if (balanceUpdates.Count(x => x.RequiredString("kind") == "minted" && x.RequiredString("category") == "baking rewards") != 1)
                     throw new ValidationException("invalid block reward");
-                
+
                 if (balanceUpdates.Count(x => x.RequiredString("kind") == "minted" && x.RequiredString("category") == "baking bonuses") > 1)
                     throw new ValidationException("invalid block bonus");
-                
+
                 if (balanceUpdates.Count(x => x.RequiredString("origin") == "block") > 5 && !Protocol.IsCycleEnd(Level))
                     throw new ValidationException("unexpected cycle rewards");
             }
@@ -177,14 +177,14 @@ namespace Tzkt.Sync.Protocols.Proto14
                             case "set_deposits_limit": await ValidateSetDepositsLimit(content); break;
                             case "increase_paid_storage": await ValidateIncreasePaidStorage(content); break;
                             case "tx_rollup_origination": await ValidateTxRollupOrigination(content); break;
-                            case "tx_rollup_submit_batch": await ValidateTxRollupSubmitBatch(content); break; 
-                            case "tx_rollup_commit": await ValidateTxRollupCommit(content); break; 
-                            case "tx_rollup_finalize_commitment": await ValidateTxRollupFinalizeCommitment(content); break; 
-                            case "tx_rollup_remove_commitment": await ValidateTxRollupRemoveCommitment(content); break; 
-                            case "tx_rollup_return_bond": await ValidateTxRollupReturnBond(content); break; 
-                            case "tx_rollup_rejection": await ValidateTxRollupRejection(content); break; 
-                            case "tx_rollup_dispatch_tickets": await ValidateTxRollupDispatchTickets(content); break; 
-                            case "transfer_ticket": await ValidateTransferTicket(content); break; 
+                            case "tx_rollup_submit_batch": await ValidateTxRollupSubmitBatch(content); break;
+                            case "tx_rollup_commit": await ValidateTxRollupCommit(content); break;
+                            case "tx_rollup_finalize_commitment": await ValidateTxRollupFinalizeCommitment(content); break;
+                            case "tx_rollup_remove_commitment": await ValidateTxRollupRemoveCommitment(content); break;
+                            case "tx_rollup_return_bond": await ValidateTxRollupReturnBond(content); break;
+                            case "tx_rollup_rejection": await ValidateTxRollupRejection(content); break;
+                            case "tx_rollup_dispatch_tickets": await ValidateTxRollupDispatchTickets(content); break;
+                            case "transfer_ticket": await ValidateTransferTicket(content); break;
                             default:
                                 throw new ValidationException("invalid operation content kind");
                         }
@@ -233,7 +233,8 @@ namespace Tzkt.Sync.Protocols.Proto14
             if (Cache.AppState.Get().VotingPeriod != periodIndex)
                 throw new ValidationException("invalid proposal voting period");
 
-            if (!Cache.Accounts.DelegateExists(content.RequiredString("source")))
+            var source = content.RequiredString("source");
+            if (Protocol.Dictator != source && !Cache.Accounts.DelegateExists(source))
                 throw new ValidationException("invalid proposal sender");
         }
 
@@ -252,7 +253,7 @@ namespace Tzkt.Sync.Protocols.Proto14
         protected virtual void ValidateDoubleBaking(JsonElement content)
         {
             var balanceUpdates = content.Required("metadata").RequiredArray("balance_updates").EnumerateArray();
-            
+
             var offenders = balanceUpdates.Where(x => x.RequiredString("kind") == "freezer" && x.RequiredString("category") == "deposits");
             if (offenders.Any())
             {
